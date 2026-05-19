@@ -1,0 +1,36 @@
+name: ➕ Propose a tweak
+description: Suggest a new privacy/performance/UI/gaming tweak.
+labels: ['tweak-proposal']
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Short title
+      placeholder: e.g. Disable Windows location services
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Privacy
+        - Performance
+        - Gaming
+        - Network
+        - UI
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What should it change?
+      description: Registry keys, services, scheduled tasks, or Appx packages.
+
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: Microsoft Learn, GitHub thread, etc.

@@ -1,0 +1,14 @@
+{
+  "safe": {
+    "name": { "ru": "Безопасный",       "en": "Safe" },
+    "description": { "ru": "Только обратимые и общепринятые твики приватности и UI.", "en": "Only reversible, well-known privacy and UI tweaks." }
+  },
+  "balanced": {
+    "name": { "ru": "Сбалансированный", "en": "Balanced" },
+    "description": { "ru": "Хороший баланс приватности, производительности и стабильности.", "en": "A balance of privacy, performance and stability." }
+  },
+  "aggressive": {
+    "name": { "ru": "Агрессивный",      "en": "Aggressive" },
+    "description": { "ru": "Максимальная оптимизация. Может отключить полезные функции - читайте описание.", "en": "Maximum optimization. May disable useful features - read the descriptions." }
+  }
+}

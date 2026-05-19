@@ -1,0 +1,28 @@
+# MightyBoost build / runtime artifacts
+dist/
+*.zip
+*.tar.gz
+
+# User runtime data (in case anyone clones repo into %AppData% style location)
+Backups/
+Logs/
+applied.json
+
+# OS / editor noise
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*.bak
+*~
+
+# VS Code / JetBrains / Visual Studio
+.vscode/
+.idea/
+*.user
+*.suo
+.vs/
+
+# PowerShell artifacts
+*.psd1.bak

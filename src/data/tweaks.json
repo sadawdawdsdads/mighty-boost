@@ -1,0 +1,938 @@
+[
+  {
+    "id": "priv-diagtrack",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить службу телеметрии DiagTrack", "en": "Disable DiagTrack telemetry service" },
+    "description": { "ru": "Останавливает и отключает службу Connected User Experiences and Telemetry.", "en": "Stops and disables Connected User Experiences and Telemetry." },
+    "apply": [
+      { "type": "service",  "name": "DiagTrack", "startup": "Disabled", "stop": true },
+      { "type": "service",  "name": "dmwappushservice", "startup": "Disabled", "stop": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection", "name": "AllowTelemetry", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "service",  "name": "DiagTrack", "startup": "Automatic", "start": true },
+      { "type": "service",  "name": "dmwappushservice", "startup": "Manual" },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection", "name": "AllowTelemetry", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-ceip",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить программу улучшения качества ПО (CEIP)", "en": "Disable Customer Experience Improvement Program" },
+    "description": { "ru": "Отключает все задачи CEIP и AutoLogger.", "en": "Disables all CEIP and AutoLogger scheduled tasks." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\SQMClient\\Windows", "name": "CEIPEnable", "kind": "DWord", "value": 0 },
+      { "type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\", "name": "Consolidator", "state": "Disabled" },
+      { "type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\", "name": "UsbCeip", "state": "Disabled" },
+      { "type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\", "name": "Microsoft Compatibility Appraiser", "state": "Disabled" },
+      { "type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\", "name": "ProgramDataUpdater", "state": "Disabled" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\SQMClient\\Windows", "name": "CEIPEnable", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-adid",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить рекламный идентификатор", "en": "Disable Advertising ID" },
+    "description": { "ru": "Не позволяет приложениям использовать ваш рекламный ID для таргетинга.", "en": "Prevents apps from using your advertising ID to deliver targeted ads." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo", "name": "DisabledByGroupPolicy", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo", "name": "Enabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo", "name": "DisabledByGroupPolicy", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo", "name": "Enabled", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "priv-activity-history",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить журнал активности", "en": "Disable Activity History" },
+    "description": { "ru": "Windows перестанет собирать журнал ваших действий и отправлять его в Microsoft.", "en": "Stops Windows from collecting your activity history." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "EnableActivityFeed", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "PublishUserActivities", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "UploadUserActivities", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "EnableActivityFeed", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "PublishUserActivities", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "UploadUserActivities", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-location",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить доступ к геолокации", "en": "Disable location services" },
+    "description": { "ru": "Запрещает приложениям и системе использовать данные о местоположении.", "en": "Denies apps and the system access to location data." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\LocationAndSensors", "name": "DisableLocation", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location", "name": "Value", "kind": "String", "value": "Deny" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\LocationAndSensors", "name": "DisableLocation", "delete": true },
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location", "name": "Value", "kind": "String", "value": "Allow" }
+    ]
+  },
+  {
+    "id": "priv-cortana",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить Cortana", "en": "Disable Cortana" },
+    "description": { "ru": "Полное отключение голосового ассистента Cortana.", "en": "Fully disables the Cortana voice assistant." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search", "name": "AllowCortana", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search", "name": "DisableWebSearch", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search", "name": "ConnectedSearchUseWeb", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search", "name": "AllowCortana", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search", "name": "DisableWebSearch", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search", "name": "ConnectedSearchUseWeb", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-bing-search",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить поиск Bing в меню Пуск", "en": "Disable Bing in Start menu search" },
+    "description": { "ru": "Локальный поиск в меню Пуск перестанет ходить в Bing.", "en": "Removes Bing web results from Start menu search." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "name": "BingSearchEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "name": "CortanaConsent",    "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",      "name": "DisableSearchBoxSuggestions", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "name": "BingSearchEnabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "name": "CortanaConsent", "delete": true },
+      { "type": "registry", "path": "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",      "name": "DisableSearchBoxSuggestions", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-tailored-experiences",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить персонализированные подсказки", "en": "Disable tailored experiences" },
+    "description": { "ru": "Microsoft перестанет использовать диагностические данные для рекомендаций.", "en": "Stops Microsoft from using diagnostic data for personalized tips." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy", "name": "TailoredExperiencesWithDiagnosticDataEnabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy", "name": "TailoredExperiencesWithDiagnosticDataEnabled", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-start-suggestions",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Убрать рекомендации и рекламу в меню Пуск", "en": "Disable Start menu suggestions" },
+    "description": { "ru": "Скрывает блок 'Рекомендуется' и рекламу приложений в меню Пуск.", "en": "Hides the recommended section and app ads in Start." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SystemPaneSuggestionsEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SilentInstalledAppsEnabled",  "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "PreInstalledAppsEnabled",    "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "OemPreInstalledAppsEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-338388Enabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SystemPaneSuggestionsEnabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SilentInstalledAppsEnabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "PreInstalledAppsEnabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "OemPreInstalledAppsEnabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-338388Enabled", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-settings-ads",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Убрать рекламу в Параметрах", "en": "Disable Settings page ads" },
+    "description": { "ru": "Скрывает рекомендации и рекламу в приложении Параметры.", "en": "Hides suggested content and ads inside the Settings app." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-338389Enabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-353694Enabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-353696Enabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-338389Enabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-353694Enabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-353696Enabled", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-lockscreen-ads",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Убрать рекламу на экране блокировки", "en": "Disable lock-screen ads" },
+    "description": { "ru": "Spotlight больше не будет показывать предложения и интересные факты.", "en": "Spotlight will stop showing tips and promotions on the lock screen." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "RotatingLockScreenEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "RotatingLockScreenOverlayEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-338387Enabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "RotatingLockScreenEnabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "RotatingLockScreenOverlayEnabled", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SubscribedContent-338387Enabled", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-tips-finish-setup",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить экран 'Завершите настройку устройства'", "en": "Disable 'Finish setting up' prompt" },
+    "description": { "ru": "Microsoft перестанет звать в OneDrive/Edge/M365 при каждом обновлении.", "en": "Stops Microsoft from showing setup nags after updates." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\UserProfileEngagement", "name": "ScoobeSystemSettingEnabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\UserProfileEngagement", "name": "ScoobeSystemSettingEnabled", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-feedback",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Не запрашивать отзывы", "en": "Disable feedback prompts" },
+    "description": { "ru": "Windows перестанет периодически просить оставить отзыв.", "en": "Windows will no longer ask for feedback." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Siuf\\Rules", "name": "NumberOfSIUFInPeriod", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Siuf\\Rules", "name": "PeriodInNanoSeconds", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Siuf\\Rules", "name": "NumberOfSIUFInPeriod", "delete": true },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Siuf\\Rules", "name": "PeriodInNanoSeconds", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-error-reporting",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить Windows Error Reporting", "en": "Disable Windows Error Reporting" },
+    "description": { "ru": "Останавливает отправку отчётов об ошибках в Microsoft.", "en": "Stops error reports from being sent to Microsoft." },
+    "apply": [
+      { "type": "service",  "name": "WerSvc", "startup": "Disabled", "stop": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting", "name": "Disabled", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "service",  "name": "WerSvc", "startup": "Manual" },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting", "name": "Disabled", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-wifi-sense",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить Wi-Fi Sense", "en": "Disable Wi-Fi Sense" },
+    "description": { "ru": "Запрещает Windows автоматически делиться сетями Wi-Fi с контактами.", "en": "Prevents auto-sharing of Wi-Fi networks with contacts." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\default\\WiFi\\AllowWiFiHotSpotReporting", "name": "Value", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\default\\WiFi\\AllowAutoConnectToWiFiSenseHotspots", "name": "Value", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\default\\WiFi\\AllowWiFiHotSpotReporting", "name": "Value", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\default\\WiFi\\AllowAutoConnectToWiFiSenseHotspots", "name": "Value", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "priv-clipboard-cloud",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить облачный буфер обмена", "en": "Disable cloud clipboard sync" },
+    "description": { "ru": "Запрещает синхронизацию буфера обмена между устройствами через Microsoft.", "en": "Prevents clipboard contents from syncing across devices." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "AllowClipboardHistory", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "AllowCrossDeviceClipboard", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "AllowClipboardHistory", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "name": "AllowCrossDeviceClipboard", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-handwriting-data",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить сбор данных рукописного ввода", "en": "Disable handwriting & typing data collection" },
+    "description": { "ru": "Microsoft перестанет собирать образцы вашего почерка и ввода.", "en": "Stops Microsoft from collecting your typing/handwriting samples." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization", "name": "AllowInputPersonalization", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization", "name": "RestrictImplicitTextCollection", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization", "name": "RestrictImplicitInkCollection", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization", "name": "AllowInputPersonalization", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization", "name": "RestrictImplicitTextCollection", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization", "name": "RestrictImplicitInkCollection", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-speech",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить онлайн-распознавание речи", "en": "Disable online speech recognition" },
+    "description": { "ru": "Запрещает использовать облачные сервисы Microsoft для распознавания речи.", "en": "Disables Microsoft's cloud speech recognition." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\InputPersonalization", "name": "AllowInputPersonalization", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Speech_OneCore\\Settings\\OnlineSpeechPrivacy", "name": "HasAccepted", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Speech_OneCore\\Settings\\OnlineSpeechPrivacy", "name": "HasAccepted", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "priv-app-launch-tracking",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить отслеживание запусков приложений", "en": "Disable app-launch tracking" },
+    "description": { "ru": "Меню Пуск перестанет показывать часто используемые приложения.", "en": "Start menu will no longer show frequently used apps." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "Start_TrackProgs", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "Start_TrackProgs", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "priv-recall-disable",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["11"],
+    "name": { "ru": "Отключить Windows Recall", "en": "Disable Windows Recall (Copilot+)" },
+    "description": { "ru": "Полностью отключает функцию записи скриншотов экрана Windows Recall.", "en": "Disables the Windows Recall screen snapshot feature." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI", "name": "DisableAIDataAnalysis", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI", "name": "DisableAIDataAnalysis", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-copilot-disable",
+    "category": "Privacy",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["11"],
+    "name": { "ru": "Отключить Copilot в Windows", "en": "Disable Windows Copilot" },
+    "description": { "ru": "Скрывает кнопку Copilot и отключает интеграцию ИИ в проводнике.", "en": "Hides the Copilot button and disables AI integration in Explorer." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "ShowCopilotButton", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot", "name": "TurnOffWindowsCopilot", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "ShowCopilotButton", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot", "name": "TurnOffWindowsCopilot", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-edge-telemetry",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить телеметрию Microsoft Edge", "en": "Disable Microsoft Edge telemetry" },
+    "description": { "ru": "Отключает диагностические данные и персонализацию Edge.", "en": "Disables diagnostic data and personalisation in Edge." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge", "name": "MetricsReportingEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge", "name": "PersonalizationReportingEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge", "name": "DiagnosticData", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge", "name": "MetricsReportingEnabled", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge", "name": "PersonalizationReportingEnabled", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge", "name": "DiagnosticData", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-onedrive-disable",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Запретить OneDrive автозапуск", "en": "Stop OneDrive auto-start" },
+    "description": { "ru": "OneDrive больше не будет автоматически запускаться при входе.", "en": "Stops OneDrive from starting automatically at sign-in." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "name": "OneDrive", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\OneDrive", "name": "DisableFileSyncNGSC", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\OneDrive", "name": "DisableFileSyncNGSC", "delete": true }
+    ]
+  },
+  {
+    "id": "priv-storage-health-telemetry",
+    "category": "Privacy",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить телеметрию диагностики диска", "en": "Disable disk diagnostic telemetry" },
+    "description": { "ru": "Отключает службу диагностического сбора Microsoft Compatibility.", "en": "Disables Microsoft Compatibility diagnostic collection." },
+    "apply": [
+      { "type": "service", "name": "DiagSvc", "startup": "Disabled", "stop": true },
+      { "type": "service", "name": "diagnosticshub.standardcollector.service", "startup": "Disabled", "stop": true }
+    ],
+    "undo": [
+      { "type": "service", "name": "DiagSvc", "startup": "Manual" },
+      { "type": "service", "name": "diagnosticshub.standardcollector.service", "startup": "Manual" }
+    ]
+  },
+
+  {
+    "id": "perf-visual-effects",
+    "category": "Performance",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить лишние визуальные эффекты", "en": "Disable extra visual effects" },
+    "description": { "ru": "Оставляет только сглаживание шрифтов; остальное отключает для скорости.", "en": "Keeps only font smoothing; disables other effects." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Desktop", "name": "UserPreferencesMask", "kind": "Binary", "value": "9012038010000000" },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects", "name": "VisualFXSetting", "kind": "DWord", "value": 3 },
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Desktop\\WindowMetrics", "name": "MinAnimate", "kind": "String", "value": "0" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects", "name": "VisualFXSetting", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Desktop\\WindowMetrics", "name": "MinAnimate", "kind": "String", "value": "1" }
+    ]
+  },
+  {
+    "id": "perf-transparency",
+    "category": "Performance",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить прозрачность", "en": "Disable transparency effects" },
+    "description": { "ru": "Убирает эффекты прозрачности интерфейса.", "en": "Removes UI transparency for slightly better GPU/CPU usage." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "name": "EnableTransparency", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "name": "EnableTransparency", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "perf-menu-show-delay",
+    "category": "Performance",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Уменьшить задержку появления меню", "en": "Speed up menu show delay" },
+    "description": { "ru": "Меню Windows будут открываться мгновенно.", "en": "Windows menus open instantly." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Desktop", "name": "MenuShowDelay", "kind": "String", "value": "0" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Desktop", "name": "MenuShowDelay", "kind": "String", "value": "400" }
+    ]
+  },
+  {
+    "id": "perf-disable-superfetch",
+    "category": "Performance",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить SysMain (SuperFetch)", "en": "Disable SysMain (SuperFetch)" },
+    "description": { "ru": "Полезно для SSD; высвобождает CPU и снижает фоновое чтение.", "en": "Useful for SSDs; cuts background reads and CPU." },
+    "apply": [
+      { "type": "service", "name": "SysMain", "startup": "Disabled", "stop": true }
+    ],
+    "undo": [
+      { "type": "service", "name": "SysMain", "startup": "Automatic", "start": true }
+    ]
+  },
+  {
+    "id": "perf-disable-search-indexer",
+    "category": "Performance",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить службу индексирования поиска", "en": "Disable Windows Search indexer" },
+    "description": { "ru": "Высвобождает диск и CPU. Поиск будет работать медленнее.", "en": "Frees disk and CPU. Search will become slower." },
+    "apply": [
+      { "type": "service", "name": "WSearch", "startup": "Disabled", "stop": true }
+    ],
+    "undo": [
+      { "type": "service", "name": "WSearch", "startup": "Automatic", "start": true }
+    ]
+  },
+  {
+    "id": "perf-ndu-tweak",
+    "category": "Performance",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить NDU (Network Data Usage)", "en": "Disable NDU driver" },
+    "description": { "ru": "Снижает RAM-утечки на больших сессиях uptime.", "en": "Helps with non-paged pool growth on long uptime." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Ndu", "name": "Start", "kind": "DWord", "value": 4 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Ndu", "name": "Start", "kind": "DWord", "value": 2 }
+    ]
+  },
+  {
+    "id": "perf-ntfs-lastaccess",
+    "category": "Performance",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить NTFS LastAccess", "en": "Disable NTFS last-access updates" },
+    "description": { "ru": "Меньше операций записи на диск (полезно для SSD).", "en": "Reduces disk writes (helpful for SSDs)." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem", "name": "NtfsDisableLastAccessUpdate", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem", "name": "NtfsDisableLastAccessUpdate", "kind": "DWord", "value": 0 }
+    ]
+  },
+  {
+    "id": "perf-ntfs-8dot3",
+    "category": "Performance",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить создание имён 8.3 в NTFS", "en": "Disable NTFS 8.3 name creation" },
+    "description": { "ru": "Ускоряет операции с папками с большим количеством файлов.", "en": "Speeds up operations on folders with many files." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem", "name": "NtfsDisable8dot3NameCreation", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem", "name": "NtfsDisable8dot3NameCreation", "kind": "DWord", "value": 0 }
+    ]
+  },
+  {
+    "id": "perf-power-high",
+    "category": "Performance",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Включить высокую производительность", "en": "Set High performance power plan" },
+    "description": { "ru": "Переключает план питания на 'Высокая производительность'.", "en": "Switches to the High performance power plan." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power", "name": "HiberbootEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "name": "HiberbootEnabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power", "name": "HiberbootEnabled", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "name": "HiberbootEnabled", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "perf-disable-fast-startup",
+    "category": "Performance",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить быстрый запуск Windows", "en": "Disable Fast Startup" },
+    "description": { "ru": "Полноценная загрузка ОС, меньше странных ошибок драйверов.", "en": "Performs a clean cold boot every time." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "name": "HiberbootEnabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "name": "HiberbootEnabled", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "perf-disable-startup-delay",
+    "category": "Performance",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Убрать задержку автозагрузки приложений", "en": "Remove startup app delay" },
+    "description": { "ru": "Программы автозагрузки начнут стартовать сразу при входе.", "en": "Startup apps will launch immediately at sign-in." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize", "name": "StartupDelayInMSec", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize", "name": "StartupDelayInMSec", "delete": true }
+    ]
+  },
+  {
+    "id": "perf-disable-tips",
+    "category": "Performance",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить советы Windows", "en": "Disable Windows tips & notifications" },
+    "description": { "ru": "Отключает уведомления советов о новых функциях.", "en": "Disables Windows tips and feature notifications." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\PushNotifications", "name": "ToastEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SoftLandingEnabled", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\PushNotifications", "name": "ToastEnabled", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "name": "SoftLandingEnabled", "delete": true }
+    ]
+  },
+  {
+    "id": "perf-tdr-delay",
+    "category": "Performance",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Увеличить TDR таймаут GPU", "en": "Increase GPU TDR timeout" },
+    "description": { "ru": "Снижает шанс перезагрузки видеодрайвера в тяжёлых сценах.", "en": "Reduces forced GPU driver resets under heavy load." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers", "name": "TdrDelay", "kind": "DWord", "value": 10 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers", "name": "TdrDelay", "delete": true }
+    ]
+  },
+
+  {
+    "id": "game-disable-gamebar",
+    "category": "Gaming",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить Xbox Game Bar", "en": "Disable Xbox Game Bar" },
+    "description": { "ru": "Отключает оверлей Xbox Game Bar и Game DVR.", "en": "Disables the Xbox Game Bar overlay and Game DVR." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\GameBar", "name": "ShowStartupPanel", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\GameBar", "name": "UseNexusForGameBarEnabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_Enabled", "kind": "DWord", "value": 0 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR", "name": "AllowGameDVR", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\GameBar", "name": "ShowStartupPanel", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_Enabled", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR", "name": "AllowGameDVR", "delete": true }
+    ]
+  },
+  {
+    "id": "game-disable-fso",
+    "category": "Gaming",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить полноэкранные оптимизации", "en": "Disable Fullscreen Optimizations" },
+    "description": { "ru": "Часто повышает FPS в играх с borderless fullscreen.", "en": "Often improves FPS in borderless fullscreen games." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_DXGIHonorFSEWindowsCompatible", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_FSEBehavior",                    "kind": "DWord", "value": 2 },
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_FSEBehaviorMode",                "kind": "DWord", "value": 2 },
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_HonorUserFSEBehaviorMode",       "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_FSEBehavior", "delete": true },
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_FSEBehaviorMode", "delete": true },
+      { "type": "registry", "path": "HKCU:\\System\\GameConfigStore", "name": "GameDVR_HonorUserFSEBehaviorMode", "delete": true }
+    ]
+  },
+  {
+    "id": "game-hags",
+    "category": "Gaming",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Включить Hardware-accelerated GPU Scheduling (HAGS)", "en": "Enable Hardware-accelerated GPU Scheduling (HAGS)" },
+    "description": { "ru": "Может улучшить FPS на современных видеокартах.", "en": "May improve FPS on modern GPUs." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers", "name": "HwSchMode", "kind": "DWord", "value": 2 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers", "name": "HwSchMode", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "game-mouse-accel-off",
+    "category": "Gaming",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить ускорение мыши", "en": "Disable mouse acceleration" },
+    "description": { "ru": "Курсор будет двигаться предсказуемо в шутерах.", "en": "Makes the cursor behave predictably in FPS games." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Mouse", "name": "MouseSpeed",        "kind": "String", "value": "0" },
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Mouse", "name": "MouseThreshold1",   "kind": "String", "value": "0" },
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Mouse", "name": "MouseThreshold2",   "kind": "String", "value": "0" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Mouse", "name": "MouseSpeed",      "kind": "String", "value": "1" },
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Mouse", "name": "MouseThreshold1", "kind": "String", "value": "6" },
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Mouse", "name": "MouseThreshold2", "kind": "String", "value": "10" }
+    ]
+  },
+  {
+    "id": "game-priority-games",
+    "category": "Gaming",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Приоритет CPU/GPU для игр", "en": "Boost CPU/GPU priority for games" },
+    "description": { "ru": "Задаёт высокий приоритет планировщика для игровых задач.", "en": "Gives games higher scheduler priority via MMCSS." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "GPU Priority", "kind": "DWord", "value": 8 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "Priority",     "kind": "DWord", "value": 6 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "Scheduling Category", "kind": "String", "value": "High" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "GPU Priority", "kind": "DWord", "value": 8 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "Priority",     "kind": "DWord", "value": 2 },
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "Scheduling Category", "kind": "String", "value": "Medium" }
+    ]
+  },
+  {
+    "id": "game-system-responsiveness",
+    "category": "Gaming",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Снизить SystemResponsiveness для игр", "en": "Lower SystemResponsiveness for games" },
+    "description": { "ru": "Меньше CPU для аудио/сетевых служб - больше для игры.", "en": "Allocates less CPU to background audio/net services." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "name": "SystemResponsiveness", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "name": "SystemResponsiveness", "kind": "DWord", "value": 20 }
+    ]
+  },
+  {
+    "id": "game-nagle-off",
+    "category": "Gaming",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить алгоритм Nagle (для онлайн-игр)", "en": "Disable Nagle's algorithm (for online games)" },
+    "description": { "ru": "Уменьшает пинг ценой большего числа сетевых пакетов.", "en": "Reduces ping at the cost of more network packets." },
+    "warning": { "ru": "Может повредить пропускной способности на медленных каналах.", "en": "Can hurt throughput on slow links." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "name": "TcpAckFrequency", "kind": "DWord", "value": 1 },
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "name": "TCPNoDelay",      "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "name": "TcpAckFrequency", "delete": true },
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "name": "TCPNoDelay",      "delete": true }
+    ]
+  },
+
+  {
+    "id": "net-disable-netbios",
+    "category": "Network",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить NetBIOS over TCP/IP", "en": "Disable NetBIOS over TCP/IP" },
+    "description": { "ru": "Закрывает устаревшие порты 137-139.", "en": "Closes legacy ports 137-139." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\NetBT\\Parameters\\Interfaces\\Tcpip_*", "name": "NetbiosOptions", "kind": "DWord", "value": 2 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\NetBT\\Parameters\\Interfaces\\Tcpip_*", "name": "NetbiosOptions", "kind": "DWord", "value": 0 }
+    ]
+  },
+  {
+    "id": "net-disable-llmnr",
+    "category": "Network",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить LLMNR", "en": "Disable LLMNR" },
+    "description": { "ru": "Защищает от атак подмены имени в локальной сети.", "en": "Mitigates name-spoofing attacks on LAN." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\DNSClient", "name": "EnableMulticast", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows NT\\DNSClient", "name": "EnableMulticast", "delete": true }
+    ]
+  },
+  {
+    "id": "net-network-throttling",
+    "category": "Network",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить network throttling", "en": "Disable network throttling" },
+    "description": { "ru": "Снимает ограничение Windows на сетевой трафик в фоне.", "en": "Removes Windows background network throttling." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "name": "NetworkThrottlingIndex", "kind": "DWord", "value": 4294967295 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "name": "NetworkThrottlingIndex", "kind": "DWord", "value": 10 }
+    ]
+  },
+  {
+    "id": "net-tcp-autotuning",
+    "category": "Network",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Включить TCP autotuning normal", "en": "Set TCP autotuning to normal" },
+    "description": { "ru": "Включает автоподстройку окна TCP - обычно ускоряет загрузку.", "en": "Re-enables TCP receive window autotuning." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", "name": "TcpAutotuning", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", "name": "TcpAutotuning", "delete": true }
+    ]
+  },
+  {
+    "id": "net-disable-ipv6",
+    "category": "Network",
+    "presets": ["aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить IPv6 (агрессивно)", "en": "Disable IPv6 (aggressive)" },
+    "description": { "ru": "Часть провайдеров до сих пор не поддерживает IPv6 нормально.", "en": "Use only if your ISP does not support IPv6 properly." },
+    "warning": { "ru": "Microsoft не рекомендует отключать IPv6 полностью.", "en": "Microsoft does not recommend fully disabling IPv6." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", "name": "DisabledComponents", "kind": "DWord", "value": 255 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters", "name": "DisabledComponents", "delete": true }
+    ]
+  },
+  {
+    "id": "net-dns-cloudflare",
+    "category": "Network",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Использовать DNS Cloudflare (1.1.1.1)", "en": "Use Cloudflare DNS (1.1.1.1)" },
+    "description": { "ru": "Применяет глобальный DNS-сервер Cloudflare для всех адаптеров.", "en": "Sets Cloudflare DNS for all active adapters." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "name": "NameServer", "kind": "String", "value": "1.1.1.1,1.0.0.1" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "name": "NameServer", "delete": true }
+    ]
+  },
+
+  {
+    "id": "ui-show-extensions",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Показывать расширения файлов", "en": "Show file extensions" },
+    "description": { "ru": "Проводник перестанет скрывать расширения для известных типов файлов.", "en": "Explorer will show extensions for known file types." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "HideFileExt", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "HideFileExt", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "ui-show-hidden",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Показывать скрытые файлы", "en": "Show hidden files" },
+    "description": { "ru": "Проводник будет показывать скрытые файлы и папки.", "en": "Explorer will display hidden files and folders." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "Hidden", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "Hidden", "kind": "DWord", "value": 2 }
+    ]
+  },
+  {
+    "id": "ui-classic-context-menu",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["11"],
+    "name": { "ru": "Классическое контекстное меню (как в Win10)", "en": "Classic context menu (Win10 style)" },
+    "description": { "ru": "Возвращает полное контекстное меню без кнопки 'Показать дополнительные'.", "en": "Restores the full right-click menu without 'Show more options'." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32", "name": "(Default)", "kind": "String", "value": "" }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32", "name": "(Default)", "delete": true }
+    ]
+  },
+  {
+    "id": "ui-taskbar-align-left",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["11"],
+    "name": { "ru": "Панель задач слева", "en": "Align taskbar to the left" },
+    "description": { "ru": "Иконки панели задач сдвигаются влево, как в Win10.", "en": "Taskbar icons shift to the left, like Win10." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "TaskbarAl", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "TaskbarAl", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "ui-hide-search-box",
+    "category": "UI",
+    "presets": ["balanced","aggressive"],
+    "win": ["11"],
+    "name": { "ru": "Скрыть поле поиска на панели задач", "en": "Hide taskbar search box" },
+    "description": { "ru": "Заменяет поле поиска на компактную иконку.", "en": "Replaces the search box with a compact icon." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Search", "name": "SearchboxTaskbarMode", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Search", "name": "SearchboxTaskbarMode", "kind": "DWord", "value": 2 }
+    ]
+  },
+  {
+    "id": "ui-hide-widgets",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["11"],
+    "name": { "ru": "Скрыть кнопку виджетов", "en": "Hide widgets button" },
+    "description": { "ru": "Убирает иконку виджетов с панели задач.", "en": "Removes the widgets icon from the taskbar." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "TaskbarDa", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "TaskbarDa", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "ui-hide-chat",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["11"],
+    "name": { "ru": "Скрыть кнопку Teams (Чат)", "en": "Hide Teams (Chat) button" },
+    "description": { "ru": "Убирает иконку Teams Chat с панели задач.", "en": "Removes the Teams chat icon from the taskbar." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "TaskbarMn", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "TaskbarMn", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "ui-explorer-open-this-pc",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Открывать проводник в 'Этот компьютер'", "en": "Open Explorer to 'This PC'" },
+    "description": { "ru": "Проводник по Win+E будет открываться на 'Этот компьютер' вместо Quick Access.", "en": "Win+E opens to This PC instead of Quick Access." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "LaunchTo", "kind": "DWord", "value": 1 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "LaunchTo", "kind": "DWord", "value": 2 }
+    ]
+  },
+  {
+    "id": "ui-disable-snap-suggestions",
+    "category": "UI",
+    "presets": ["balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить подсказки прикрепления окон", "en": "Disable snap suggestions" },
+    "description": { "ru": "Windows не будет предлагать раскладку при прикреплении окна.", "en": "Disables the snap layout pop-up when snapping windows." },
+    "apply": [
+      { "type": "registry", "path": "HKCU:\\Control Panel\\Desktop", "name": "WindowArrangementActive", "kind": "String", "value": "0" },
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "EnableSnapAssistFlyout", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "name": "EnableSnapAssistFlyout", "kind": "DWord", "value": 1 }
+    ]
+  },
+  {
+    "id": "ui-disable-news-interests",
+    "category": "UI",
+    "presets": ["safe","balanced","aggressive"],
+    "win": ["10","11"],
+    "name": { "ru": "Отключить 'Новости и интересы'", "en": "Disable News and Interests" },
+    "description": { "ru": "Убирает блок новостей с погодой с панели задач.", "en": "Hides the news/weather feed on the taskbar." },
+    "apply": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Feeds", "name": "EnableFeeds", "kind": "DWord", "value": 0 }
+    ],
+    "undo": [
+      { "type": "registry", "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Feeds", "name": "EnableFeeds", "delete": true }
+    ]
+  }
+]

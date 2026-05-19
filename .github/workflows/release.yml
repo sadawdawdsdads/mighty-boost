@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package source
+        run: |
+          mkdir -p dist
+          tag="${GITHUB_REF_NAME}"
+          zip -r "dist/mighty-boost-${tag}.zip" boost.ps1 src docs LICENSE README.md README.ru.md
+          tar -czf "dist/mighty-boost-${tag}.tar.gz" boost.ps1 src docs LICENSE README.md README.ru.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.tar.gz
+          generate_release_notes: true

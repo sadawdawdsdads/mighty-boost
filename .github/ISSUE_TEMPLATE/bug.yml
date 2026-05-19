@@ -1,0 +1,42 @@
+name: 🐞 Bug report
+description: Something went wrong with a tweak, the GUI, or the installer.
+labels: ['bug']
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Output of `winver` (e.g. Windows 11 23H2 build 22631.3447)
+    validations:
+      required: true
+
+  - type: input
+    id: tweak
+    attributes:
+      label: Tweak ID(s)
+      description: e.g. priv-diagtrack, perf-superfetch
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log excerpt
+      description: Open %AppData%\MightyBoost\Logs and paste relevant lines.
+      render: shell
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I ran MightyBoost as administrator
+          required: true
+        - label: I can reproduce this on a clean session
+          required: false

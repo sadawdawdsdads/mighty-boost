@@ -1,0 +1,7 @@
+[
+  { "id": "task-officetelemetry", "path": "\\Microsoft\\Office\\", "name": "OfficeTelemetryAgentLogOn",     "preset": "balanced",  "description": { "ru": "Телеметрия Office при входе", "en": "Office telemetry on logon" } },
+  { "id": "task-officeauto",      "path": "\\Microsoft\\Office\\", "name": "OfficeTelemetryAgentFallBack",  "preset": "balanced",  "description": { "ru": "Резервная телеметрия Office",   "en": "Office telemetry fallback" } },
+  { "id": "task-windowsupdate-medic", "path": "\\Microsoft\\Windows\\WaaSMedic\\", "name": "PerformRemediation", "preset": "aggressive", "description": { "ru": "Принудительное восстановление Windows Update", "en": "Windows Update force-remediation" } },
+  { "id": "task-feedback",        "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\", "name": "DmClient", "preset": "balanced", "description": { "ru": "Уведомления Feedback Hub", "en": "Feedback Hub notifications" } },
+  { "id": "task-feedback-onroam", "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\", "name": "DmClientOnScenarioDownload", "preset": "balanced", "description": { "ru": "Уведомления Feedback при роуминге", "en": "Feedback Hub roaming notifications" } }
+]
