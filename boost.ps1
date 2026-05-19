@@ -8,16 +8,19 @@
 .NOTES
     Project:  MightyBoost
     License:  MIT
-    Repo:     https://github.com/<user>/mighty-boost
-    Launch:   irm https://raw.githubusercontent.com/<user>/mighty-boost/main/boost.ps1 | iex
+    Repo:     https://github.com/sadawdawdsdads/mighty-boost
+    Launch:   irm https://raw.githubusercontent.com/sadawdawdsdads/mighty-boost/main/boost.ps1 | iex
 #>
 
-[CmdletBinding()]
-param(
-    [string]$Branch = 'main',
-    [switch]$Local,
-    [switch]$NoElevate
-)
+# Optional parameters (work both with `.\boost.ps1` invocation and with `irm | iex`):
+#   $Branch    : branch to fetch modules from (default: 'main')
+#   $Local     : force local mode - read modules from $PWD instead of GitHub
+#   $NoElevate : skip the auto-elevation prompt
+# To pass them via irm | iex, set the variable before piping:
+#   $Branch = 'dev'; irm '...' | iex
+if (-not (Test-Path Variable:Branch))    { $Branch    = 'main' }
+if (-not (Test-Path Variable:Local))     { $Local     = $false }
+if (-not (Test-Path Variable:NoElevate)) { $NoElevate = $false }
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
@@ -26,7 +29,7 @@ $ProgressPreference    = 'SilentlyContinue'
 $global:MB = [ordered]@{
     Name        = 'MightyBoost'
     Version     = '0.1.0'
-    RepoOwner   = 'mighty-boost'
+    RepoOwner   = 'sadawdawdsdads'
     RepoName    = 'mighty-boost'
     Branch      = $Branch
     AppDataDir  = Join-Path $env:APPDATA 'MightyBoost'
@@ -35,7 +38,7 @@ $global:MB = [ordered]@{
     DataDir     = Join-Path $env:APPDATA 'MightyBoost\Data'
     AppliedFile = Join-Path $env:APPDATA 'MightyBoost\applied.json'
     StartedAt   = Get-Date
-    IsLocal     = $Local.IsPresent
+    IsLocal     = [bool]$Local
     RootDir     = $null
     Culture     = (Get-Culture).TwoLetterISOLanguageName
 }
@@ -121,17 +124,13 @@ function Get-MBSource {
     return (Invoke-RestMethod -Uri $url -ErrorAction Stop)
 }
 
-function Import-MBModule {
-    param([string]$Name)
-    $relative = "src/core/$Name.ps1"
-    $code = Get-MBSource -RelativePath $relative
-    $sb = [scriptblock]::Create($code)
-    . $sb
-}
-
 Write-Host "[+] Loading modules..." -ForegroundColor Green
 foreach ($m in $ModuleNames) {
-    try { Import-MBModule -Name $m } catch {
+    try {
+        $code = Get-MBSource -RelativePath "src/core/$m.ps1"
+        $sb   = [scriptblock]::Create($code)
+        . $sb
+    } catch {
         Write-Error "Failed to load module $m : $($_.Exception.Message)"
         return
     }
