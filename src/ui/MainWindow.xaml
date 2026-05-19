@@ -260,7 +260,7 @@
         </TabControl>
 
         <Border Grid.Row="2" Background="{StaticResource BgPanelDark}">
-            <TextBlock Text="MightyBoost · MIT · github.com/mighty-boost/mighty-boost"
+            <TextBlock Text="MightyBoost · MIT · github.com/sadawdawdsdads/mighty-boost"
                        Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="20,0,0,0"
                        FontSize="11"/>
         </Border>

