@@ -179,6 +179,33 @@ function Confirm-MB {
     return ($ans -match '^(y|yes|д|да)$')
 }
 
+function Invoke-MBRebootPrompt {
+    Write-Host ""
+    Write-Host "   ============================================================" -ForegroundColor Yellow
+    Write-Host "      Reboot recommended - some tweaks need a restart to apply" -ForegroundColor Yellow
+    Write-Host "      Перезагрузка рекомендуется - часть твиков сработает после рестарта" -ForegroundColor Yellow
+    Write-Host "   ============================================================" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host '   [1] Restart now     / Перезагрузить сейчас'
+    Write-Host '   [2] Restart later   / Позже (вручную)'
+    Write-Host ''
+    $c = Read-MBChoice 'Choose'
+    if ($c.Trim() -eq '1') {
+        Write-Host ''
+        Write-Host '   Restarting in 10 seconds... (Ctrl+C to abort)' -ForegroundColor Red
+        Write-MBLog 'User chose reboot now' -Level ACTION
+        try {
+            & shutdown.exe /r /t 10 /c "MightyBoost: applying tweaks - rebooting in 10 seconds" | Out-Null
+        } catch {
+            Start-Sleep -Seconds 10
+            Restart-Computer -Force
+        }
+    } else {
+        Write-Host '   OK - reboot when ready / Хорошо, перезагрузишь позже' -ForegroundColor DarkYellow
+        Write-MBLog 'User chose reboot later' -Level INFO
+    }
+}
+
 # ------------------------------------------------------------------
 # Menu rendering
 # ------------------------------------------------------------------
@@ -252,6 +279,7 @@ function Invoke-MBCategoryMenu {
     foreach ($i in $idx) { Invoke-MBTweak -Tweak $items[$i - 1] }
     Write-Host ''
     Write-Host ("   Applied {0} tweak(s)." -f $idx.Count) -ForegroundColor Green
+    Invoke-MBRebootPrompt
     Pause-MB
 }
 
@@ -283,6 +311,7 @@ function Invoke-MBPresetMenu {
     foreach ($t in $tweaks) { Invoke-MBTweak -Tweak $t }
     Write-Host ''
     Write-Host ("   Applied {0} tweak(s)." -f $tweaks.Count) -ForegroundColor Green
+    Invoke-MBRebootPrompt
     Pause-MB
 }
 
@@ -305,6 +334,7 @@ function Invoke-MBDebloatMenu {
     }
     Write-Host ''
     Write-Host '   Done.' -ForegroundColor Green
+    Invoke-MBRebootPrompt
     Pause-MB
 }
 
@@ -333,6 +363,7 @@ function Invoke-MBServicesMenu {
     }
     Write-Host ''
     Write-Host '   Done.' -ForegroundColor Green
+    Invoke-MBRebootPrompt
     Pause-MB
 }
 
@@ -405,6 +436,7 @@ function Invoke-MBRestoreMenu {
     foreach ($i in $sorted) { Undo-MBTweak -Id $items[$i - 1].id }
     Write-Host ''
     Write-Host '   Done.' -ForegroundColor Green
+    Invoke-MBRebootPrompt
     Pause-MB
 }
 
