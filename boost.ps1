@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     MightyBoost - Windows 10/11 optimizer with one-liner launch.
@@ -116,12 +116,20 @@ function Get-MBSource {
     param(
         [Parameter(Mandatory)] [string]$RelativePath
     )
+    $text = $null
     if ($global:MB.IsLocal) {
         $local = Join-Path $global:MB.RootDir $RelativePath
-        if (Test-Path $local) { return Get-Content -LiteralPath $local -Raw -Encoding UTF8 }
+        if (Test-Path $local) { $text = Get-Content -LiteralPath $local -Raw -Encoding UTF8 }
     }
-    $url = "https://raw.githubusercontent.com/$($global:MB.RepoOwner)/$($global:MB.RepoName)/$($global:MB.Branch)/$RelativePath"
-    return (Invoke-RestMethod -Uri $url -ErrorAction Stop)
+    if ($null -eq $text) {
+        $url  = "https://raw.githubusercontent.com/$($global:MB.RepoOwner)/$($global:MB.RepoName)/$($global:MB.Branch)/$RelativePath"
+        $text = Invoke-RestMethod -Uri $url -ErrorAction Stop
+    }
+    # Strip UTF-8 BOM character so [scriptblock]::Create can parse the first line.
+    if ($text -and $text.Length -gt 0 -and [int][char]$text[0] -eq 0xFEFF) {
+        $text = $text.Substring(1)
+    }
+    return $text
 }
 
 Write-Host "[+] Loading modules..." -ForegroundColor Green
