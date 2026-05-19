@@ -1,4 +1,4 @@
-﻿# App.ps1 - central orchestration: JSON loader, tweak engine, applied-log, UI bootstrap.
+﻿# App.ps1 - CLI orchestration: JSON loader, tweak engine, applied-log, console menu.
 
 # ------------------------------------------------------------------
 # Data loaders
@@ -73,16 +73,12 @@ function Get-MBRegistryKeysFromActions {
 }
 
 function Invoke-MBActionList {
-    [CmdletBinding()]
     param(
         [Parameter(Mandatory)] $Actions,
         [string]$TweakId = 'adhoc'
     )
-    # 1) Backup all touched registry keys first.
     $regKeys = Get-MBRegistryKeysFromActions -Actions $Actions
     if ($regKeys.Count -gt 0) { [void](New-MBRegBackup -Keys $regKeys -TweakId $TweakId) }
-
-    # 2) Execute every action.
     foreach ($a in $Actions) {
         $action = Convert-MBAction -Action $a
         try {
@@ -100,9 +96,7 @@ function Invoke-MBActionList {
 }
 
 function Invoke-MBTweak {
-    [CmdletBinding()]
     param([Parameter(Mandatory)] $Tweak)
-
     if (-not (Test-MBOSCompatible -Win $Tweak.win)) {
         Write-MBLog "skip $($Tweak.id) - incompatible OS" -Level DEBUG
         return
@@ -118,7 +112,6 @@ function Invoke-MBTweak {
 }
 
 function Undo-MBTweak {
-    [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Id)
     $applied = @(Read-MBApplied)
     $entry = $applied | Where-Object { $_.id -eq $Id } | Select-Object -Last 1
@@ -130,277 +123,331 @@ function Undo-MBTweak {
 }
 
 # ------------------------------------------------------------------
-# UI bootstrap
+# Console helpers
+# ------------------------------------------------------------------
+function Write-MBLine { Write-Host ('-' * 70) -ForegroundColor DarkGray }
+function Write-MBDouble { Write-Host ('=' * 70) -ForegroundColor Cyan }
+
+function Write-MBHeader {
+    param([string]$Title)
+    Clear-Host
+    Write-MBDouble
+    Write-Host ("   " + $Title) -ForegroundColor Cyan
+    Write-MBDouble
+    Write-Host ""
+}
+
+function Read-MBChoice {
+    param([string]$Prompt = 'Choice')
+    Write-Host ""
+    Write-Host -NoNewline ("   " + $Prompt + ": ") -ForegroundColor Yellow
+    return (Read-Host)
+}
+
+function Pause-MB {
+    Write-Host ""
+    Write-Host -NoNewline '   Press Enter to continue...' -ForegroundColor DarkGray
+    $null = Read-Host
+}
+
+function ConvertFrom-MBIndexInput {
+    # "1 3 5-8 11" => @(1,3,5,6,7,8,11)
+    param([string]$Selection, [int]$Max)
+    $result = New-Object System.Collections.Generic.HashSet[int]
+    foreach ($tok in ($Selection -split '[\s,]+' | Where-Object { $_ })) {
+        if ($tok -match '^(\d+)-(\d+)$') {
+            $a = [int]$matches[1]; $b = [int]$matches[2]
+            if ($a -gt $b) { $t = $a; $a = $b; $b = $t }
+            for ($i = $a; $i -le $b; $i++) {
+                if ($i -ge 1 -and $i -le $Max) { [void]$result.Add($i) }
+            }
+        } elseif ($tok -match '^\d+$') {
+            $i = [int]$tok
+            if ($i -ge 1 -and $i -le $Max) { [void]$result.Add($i) }
+        } elseif ($tok -eq 'all' -or $tok -eq '*') {
+            for ($i = 1; $i -le $Max; $i++) { [void]$result.Add($i) }
+        }
+    }
+    return ($result | Sort-Object)
+}
+
+function Confirm-MB {
+    param([string]$Message)
+    Write-Host ""
+    Write-Host -NoNewline ("   " + $Message + " [y/N]: ") -ForegroundColor Yellow
+    $ans = Read-Host
+    return ($ans -match '^(y|yes|д|да)$')
+}
+
+# ------------------------------------------------------------------
+# Menu rendering
+# ------------------------------------------------------------------
+function Show-MBMainMenu {
+    Write-MBHeader 'MightyBoost - main menu'
+    $os = $global:MB.OS
+    Write-Host ("   System  : Windows {0} {1} (build {2}.{3})" -f $os.Major, $os.DisplayVersion, $os.Build, $os.UBR)
+    Write-Host ("   Hardware: {0} | {1} GB RAM | user {2}" -f $os.Arch, $os.TotalRAMGb, $os.UserName)
+    Write-Host ("   App     : MightyBoost v{0} | locale '{1}' | log {2}" -f $global:MB.Version, $global:MB.Locale, (Split-Path -Leaf $global:MB.LogFile))
+    Write-Host ""
+    Write-MBLine
+
+    $tweaks   = @($global:MB.Data.Tweaks)
+    $privacy  = ($tweaks | Where-Object { $_.category -eq 'Privacy' }).Count
+    $perform  = ($tweaks | Where-Object { $_.category -eq 'Performance' }).Count
+    $gaming   = ($tweaks | Where-Object { $_.category -eq 'Gaming' }).Count
+    $network  = ($tweaks | Where-Object { $_.category -eq 'Network' }).Count
+    $uiCount  = ($tweaks | Where-Object { $_.category -eq 'UI' }).Count
+    $applied  = @(Read-MBApplied).Count
+
+    Write-Host ""
+    Write-Host '   [1] Apply preset           (Safe / Balanced / Aggressive)'
+    Write-Host ("   [2] Privacy tweaks         ({0})" -f $privacy)
+    Write-Host ("   [3] Performance tweaks     ({0})" -f $perform)
+    Write-Host ("   [4] Gaming tweaks          ({0})" -f $gaming)
+    Write-Host ("   [5] Network tweaks         ({0})" -f $network)
+    Write-Host ("   [6] UI tweaks              ({0})" -f $uiCount)
+    Write-Host ("   [7] Debloat apps           ({0})" -f @($global:MB.Data.Debloat).Count)
+    Write-Host ("   [8] Configure services     ({0})" -f @($global:MB.Data.Services).Count)
+    Write-Host ("   [9] Install software       ({0})" -f @($global:MB.Data.Apps).Count)
+    Write-Host '   [C] Cleanup junk files'
+    Write-Host ("   [R] Restore (undo applied) (applied: {0})" -f $applied)
+    Write-Host '   [P] Create restore point now'
+    Write-Host '   [L] Show log file path'
+    Write-Host '   [Q] Quit'
+}
+
+# ------------------------------------------------------------------
+# Tweak selector for one category
+# ------------------------------------------------------------------
+function Invoke-MBCategoryMenu {
+    param([string]$Category)
+    $items = @($global:MB.Data.Tweaks | Where-Object { $_.category -eq $Category })
+    if ($items.Count -eq 0) {
+        Write-Host "   No tweaks in '$Category'." -ForegroundColor DarkGray
+        Pause-MB; return
+    }
+    Write-MBHeader "$Category tweaks"
+    Write-Host '   Enter numbers separated by spaces (e.g. "1 3 5"), ranges ("1-5"), or "all".'
+    Write-Host ''
+    for ($i = 0; $i -lt $items.Count; $i++) {
+        $t = $items[$i]
+        $name = Get-MBLocalized $t.name
+        $compat = if (Test-MBOSCompatible -Win $t.win) { '  ' } else { '!!' }
+        $presets = if ($t.presets) { ($t.presets -join ',') } else { '-' }
+        Write-Host ("   [{0,3}] {1} {2,-58}  [{3}]" -f ($i + 1), $compat, $name, $presets)
+    }
+    $sel = Read-MBChoice 'Pick tweaks (empty = back)'
+    if ([string]::IsNullOrWhiteSpace($sel)) { return }
+    $idx = ConvertFrom-MBIndexInput -Selection $sel -Max $items.Count
+    if (-not $idx -or $idx.Count -eq 0) {
+        Write-Host '   Nothing selected.' -ForegroundColor DarkYellow
+        Pause-MB; return
+    }
+    Write-Host ''
+    Write-Host ("   Selected {0} tweak(s):" -f $idx.Count) -ForegroundColor Cyan
+    foreach ($i in $idx) { Write-Host ("     - " + (Get-MBLocalized $items[$i - 1].name)) }
+    if (-not (Confirm-MB 'Apply?')) { return }
+
+    [void](New-MBRestorePoint)
+    foreach ($i in $idx) { Invoke-MBTweak -Tweak $items[$i - 1] }
+    Write-Host ''
+    Write-Host ("   Applied {0} tweak(s)." -f $idx.Count) -ForegroundColor Green
+    Pause-MB
+}
+
+# ------------------------------------------------------------------
+# Preset
+# ------------------------------------------------------------------
+function Invoke-MBPresetMenu {
+    Write-MBHeader 'Apply preset'
+    Write-Host '   [1] Safe        - only reversible privacy/UI tweaks'
+    Write-Host '   [2] Balanced    - good balance for daily driver'
+    Write-Host '   [3] Aggressive  - max optimisation, disables more features'
+    $c = Read-MBChoice 'Pick preset (empty = back)'
+    $preset = switch ($c) {
+        '1' { 'safe' }
+        '2' { 'balanced' }
+        '3' { 'aggressive' }
+        default { return }
+    }
+    $tweaks = @($global:MB.Data.Tweaks | Where-Object { $_.presets -contains $preset -and (Test-MBOSCompatible -Win $_.win) })
+    Write-Host ''
+    Write-Host ("   '{0}' preset = {1} tweak(s):" -f $preset, $tweaks.Count) -ForegroundColor Cyan
+    foreach ($t in $tweaks) { Write-Host ("     - " + (Get-MBLocalized $t.name)) -ForegroundColor DarkGray }
+    if ($preset -eq 'aggressive') {
+        Write-Host ''
+        Write-Host '   WARNING: aggressive disables search indexer, SuperFetch, IPv6 etc.' -ForegroundColor Red
+    }
+    if (-not (Confirm-MB 'Apply preset?')) { return }
+    [void](New-MBRestorePoint)
+    foreach ($t in $tweaks) { Invoke-MBTweak -Tweak $t }
+    Write-Host ''
+    Write-Host ("   Applied {0} tweak(s)." -f $tweaks.Count) -ForegroundColor Green
+    Pause-MB
+}
+
+# ------------------------------------------------------------------
+# Debloat
+# ------------------------------------------------------------------
+function Invoke-MBDebloatMenu {
+    $items = @($global:MB.Data.Debloat)
+    Write-MBHeader ("Debloat - remove built-in apps ({0})" -f $items.Count)
+    for ($i = 0; $i -lt $items.Count; $i++) {
+        Write-Host ("   [{0,3}]  {1,-32}  ({2})" -f ($i + 1), (Get-MBLocalized $items[$i].name), $items[$i].appx)
+    }
+    $sel = Read-MBChoice 'Pick apps to remove (empty = back)'
+    if ([string]::IsNullOrWhiteSpace($sel)) { return }
+    $idx = ConvertFrom-MBIndexInput -Selection $sel -Max $items.Count
+    if ($idx.Count -eq 0) { return }
+    if (-not (Confirm-MB ("Remove {0} app(s)?" -f $idx.Count))) { return }
+    foreach ($i in $idx) {
+        [void](Remove-MBAppx -Name $items[$i - 1].appx)
+    }
+    Write-Host ''
+    Write-Host '   Done.' -ForegroundColor Green
+    Pause-MB
+}
+
+# ------------------------------------------------------------------
+# Services
+# ------------------------------------------------------------------
+function Invoke-MBServicesMenu {
+    $items = @($global:MB.Data.Services)
+    Write-MBHeader ("Services - apply hardening ({0})" -f $items.Count)
+    for ($i = 0; $i -lt $items.Count; $i++) {
+        $s = $items[$i]
+        Write-Host ("   [{0,3}]  {1,-30}  preset={2,-10}  -> {3}" -f ($i + 1), $s.name, $s.preset, $s.startup)
+    }
+    $sel = Read-MBChoice 'Pick services to configure (empty = back)'
+    if ([string]::IsNullOrWhiteSpace($sel)) { return }
+    $idx = ConvertFrom-MBIndexInput -Selection $sel -Max $items.Count
+    if ($idx.Count -eq 0) { return }
+    if (-not (Confirm-MB ("Configure {0} service(s)?" -f $idx.Count))) { return }
+    foreach ($i in $idx) {
+        $s = $items[$i - 1]
+        Invoke-MBServiceAction -Action @{
+            name    = $s.service
+            startup = $s.startup
+            stop    = $true
+        }
+    }
+    Write-Host ''
+    Write-Host '   Done.' -ForegroundColor Green
+    Pause-MB
+}
+
+# ------------------------------------------------------------------
+# Install software via winget
+# ------------------------------------------------------------------
+function Invoke-MBInstallMenu {
+    $items = @($global:MB.Data.Apps)
+    Write-MBHeader ("Install software via winget ({0})" -f $items.Count)
+    for ($i = 0; $i -lt $items.Count; $i++) {
+        Write-Host ("   [{0,3}]  {1,-32}  ({2})" -f ($i + 1), $items[$i].name, $items[$i].id)
+    }
+    $sel = Read-MBChoice 'Pick apps to install (empty = back)'
+    if ([string]::IsNullOrWhiteSpace($sel)) { return }
+    $idx = ConvertFrom-MBIndexInput -Selection $sel -Max $items.Count
+    if ($idx.Count -eq 0) { return }
+    if (-not (Confirm-MB ("Install {0} package(s)?" -f $idx.Count))) { return }
+    $ok = 0
+    foreach ($i in $idx) { if (Install-MBPackage -Id $items[$i - 1].id) { $ok++ } }
+    Write-Host ''
+    Write-Host ("   Installed {0}/{1}." -f $ok, $idx.Count) -ForegroundColor Green
+    Pause-MB
+}
+
+# ------------------------------------------------------------------
+# Cleanup
+# ------------------------------------------------------------------
+function Invoke-MBCleanupMenu {
+    $targets = @(Get-MBCleanupTargets)
+    Write-MBHeader 'Cleanup - junk and caches'
+    for ($i = 0; $i -lt $targets.Count; $i++) {
+        $name = Get-MBLocalized ([pscustomobject]$targets[$i].Name)
+        Write-Host ("   [{0,3}]  {1}" -f ($i + 1), $name)
+    }
+    $sel = Read-MBChoice 'Pick targets (default = all)'
+    if ([string]::IsNullOrWhiteSpace($sel)) { $sel = 'all' }
+    $idx = ConvertFrom-MBIndexInput -Selection $sel -Max $targets.Count
+    if ($idx.Count -eq 0) { return }
+    if (-not (Confirm-MB ("Clean {0} target(s)?" -f $idx.Count))) { return }
+    $total = 0
+    foreach ($i in $idx) { $total += (Invoke-MBCleanupTarget -Target $targets[$i - 1]) }
+    Write-Host ''
+    Write-Host ("   Freed approximately {0:N1} MB." -f ($total / 1MB)) -ForegroundColor Green
+    Pause-MB
+}
+
+# ------------------------------------------------------------------
+# Restore (undo)
+# ------------------------------------------------------------------
+function Invoke-MBRestoreMenu {
+    $items = @(Read-MBApplied)
+    Write-MBHeader ("Restore - undo applied tweaks ({0})" -f $items.Count)
+    if ($items.Count -eq 0) {
+        Write-Host '   No applied tweaks yet.' -ForegroundColor DarkGray
+        Pause-MB; return
+    }
+    for ($i = 0; $i -lt $items.Count; $i++) {
+        $e = $items[$i]
+        Write-Host ("   [{0,3}]  {1}  {2,-12}  {3}" -f ($i + 1), $e.appliedAt, $e.category, $e.id)
+    }
+    Write-Host ''
+    Write-Host '   Type numbers to undo, or "all" to roll back everything.'
+    $sel = Read-MBChoice 'Pick (empty = back)'
+    if ([string]::IsNullOrWhiteSpace($sel)) { return }
+    $idx = ConvertFrom-MBIndexInput -Selection $sel -Max $items.Count
+    if ($idx.Count -eq 0) { return }
+    if (-not (Confirm-MB ("Undo {0} tweak(s)?" -f $idx.Count))) { return }
+    # Undo in reverse order (newest first).
+    $sorted = $idx | Sort-Object -Descending
+    foreach ($i in $sorted) { Undo-MBTweak -Id $items[$i - 1].id }
+    Write-Host ''
+    Write-Host '   Done.' -ForegroundColor Green
+    Pause-MB
+}
+
+# ------------------------------------------------------------------
+# Entry point
 # ------------------------------------------------------------------
 function Start-MBApp {
     Initialize-MBData
-
-    Add-Type -AssemblyName PresentationFramework
-    Add-Type -AssemblyName PresentationCore
-    Add-Type -AssemblyName WindowsBase
-    Add-Type -AssemblyName System.Windows.Forms
-
-    $xaml = Get-MBSource -RelativePath 'src/ui/MainWindow.xaml'
-    $xaml = $xaml -replace 'x:Class="[^"]+"\s*', ''
-    [xml]$xml = $xaml
-    $reader = New-Object System.Xml.XmlNodeReader $xml
-    try {
-        $window = [Windows.Markup.XamlReader]::Load($reader)
-    } catch {
-        Write-MBLog "XAML load failed: $($_.Exception.Message)" -Level ERROR
-        throw
-    }
-
-    # Cache named elements.
-    $named = @{}
-    $xml.SelectNodes('//*[@*[local-name()="Name"]]') | ForEach-Object {
-        $n = $_.GetAttribute('Name', 'http://schemas.microsoft.com/winfx/2006/xaml')
-        if ($n) { $named[$n] = $window.FindName($n) }
-    }
-    $global:MB.UI = $named
-    $global:MB.Window = $window
-
-    Invoke-MBUIBindings
-    [void]$window.ShowDialog()
-}
-
-# ------------------------------------------------------------------
-# UI bindings - populate lists, wire up events
-# ------------------------------------------------------------------
-function Invoke-MBUIBindings {
-    $ui = $global:MB.UI
-
-    # ----- Home tab -----
-    if ($ui.HomeStatusText) {
-        $os = $global:MB.OS
-        $ui.HomeStatusText.Text = (
-            "Windows {0}  {1}  (build {2}.{3})`r`n" +
-            "{4}   |   {5} GB RAM   |   User: {6}`r`n" +
-            "MightyBoost v{7}   |   Locale: {8}"
-        ) -f $os.Major, $os.DisplayVersion, $os.Build, $os.UBR, `
-             $os.Arch, $os.TotalRAMGb, $os.UserName, $global:MB.Version, $global:MB.Locale
-    }
-    if ($ui.BtnRestorePoint) {
-        $ui.BtnRestorePoint.Add_Click({
-            $ok = New-MBRestorePoint -Force
-            [System.Windows.MessageBox]::Show(
-                $(if ($ok) { 'Точка восстановления создана / Restore point created.' }
-                  else     { 'Не удалось создать. Проверь System Protection.' }),
-                'MightyBoost') | Out-Null
-        })
-    }
-
-    # ----- Tweaks tabs (Privacy/Performance/Gaming/Network/UI) -----
-    foreach ($cat in 'Privacy','Performance','Gaming','Network','UI') {
-        $panelName = "Panel$cat"
-        $panel = $ui[$panelName]
-        if (-not $panel) { continue }
-        $panel.Children.Clear()
-        $items = $global:MB.Data.Tweaks | Where-Object { $_.category -eq $cat }
-        foreach ($t in $items) {
-            $cb = New-Object System.Windows.Controls.CheckBox
-            $cb.Margin  = '0,4,0,4'
-            $cb.Foreground = [System.Windows.Media.Brushes]::White
-            $cb.Content = Get-MBLocalized $t.name
-            $cb.ToolTip = Get-MBLocalized $t.description
-            $cb.Tag     = $t.id
-            [void]$panel.Children.Add($cb)
-        }
-    }
-
-    # ----- Debloat tab -----
-    if ($ui.PanelDebloat) {
-        $ui.PanelDebloat.Children.Clear()
-        foreach ($d in $global:MB.Data.Debloat) {
-            $cb = New-Object System.Windows.Controls.CheckBox
-            $cb.Margin     = '0,4,0,4'
-            $cb.Foreground = [System.Windows.Media.Brushes]::White
-            $cb.Content    = Get-MBLocalized $d.name
-            $cb.ToolTip    = $d.appx
-            $cb.Tag        = $d.id
-            [void]$ui.PanelDebloat.Children.Add($cb)
-        }
-    }
-
-    # ----- Services tab -----
-    if ($ui.PanelServices) {
-        $ui.PanelServices.Children.Clear()
-        foreach ($s in $global:MB.Data.Services) {
-            $cb = New-Object System.Windows.Controls.CheckBox
-            $cb.Margin     = '0,4,0,4'
-            $cb.Foreground = [System.Windows.Media.Brushes]::White
-            $cb.Content    = "$($s.name)  [$($s.preset)]"
-            $cb.ToolTip    = Get-MBLocalized $s.description
-            $cb.Tag        = $s.id
-            [void]$ui.PanelServices.Children.Add($cb)
-        }
-    }
-
-    # ----- Install (winget) tab -----
-    if ($ui.PanelInstall) {
-        $ui.PanelInstall.Children.Clear()
-        foreach ($a in $global:MB.Data.Apps) {
-            $cb = New-Object System.Windows.Controls.CheckBox
-            $cb.Margin     = '0,4,0,4'
-            $cb.Foreground = [System.Windows.Media.Brushes]::White
-            $cb.Content    = "$($a.name)   ($($a.id))"
-            $cb.ToolTip    = $a.description
-            $cb.Tag        = $a.id
-            [void]$ui.PanelInstall.Children.Add($cb)
-        }
-    }
-
-    # ----- Cleanup tab -----
-    if ($ui.PanelCleanup) {
-        $ui.PanelCleanup.Children.Clear()
-        foreach ($t in (Get-MBCleanupTargets)) {
-            $cb = New-Object System.Windows.Controls.CheckBox
-            $cb.Margin     = '0,4,0,4'
-            $cb.IsChecked  = $true
-            $cb.Foreground = [System.Windows.Media.Brushes]::White
-            $cb.Content    = (Get-MBLocalized ([pscustomobject]$t.Name))
-            $cb.Tag        = $t.Id
-            [void]$ui.PanelCleanup.Children.Add($cb)
-        }
-    }
-
-    # ----- Buttons -----
-    if ($ui.BtnApplyTweaks) {
-        $ui.BtnApplyTweaks.Add_Click({ Invoke-MBApplySelectedTweaks })
-    }
-    if ($ui.BtnApplyDebloat) {
-        $ui.BtnApplyDebloat.Add_Click({ Invoke-MBApplySelectedDebloat })
-    }
-    if ($ui.BtnApplyServices) {
-        $ui.BtnApplyServices.Add_Click({ Invoke-MBApplySelectedServices })
-    }
-    if ($ui.BtnInstallApps) {
-        $ui.BtnInstallApps.Add_Click({ Invoke-MBInstallSelectedApps })
-    }
-    if ($ui.BtnRunCleanup) {
-        $ui.BtnRunCleanup.Add_Click({ Invoke-MBRunCleanup })
-    }
-    if ($ui.BtnApplyPresetSafe) {
-        $ui.BtnApplyPresetSafe.Add_Click({ Invoke-MBApplyPreset 'safe' })
-    }
-    if ($ui.BtnApplyPresetBalanced) {
-        $ui.BtnApplyPresetBalanced.Add_Click({ Invoke-MBApplyPreset 'balanced' })
-    }
-    if ($ui.BtnApplyPresetAggressive) {
-        $ui.BtnApplyPresetAggressive.Add_Click({
-            $r = [System.Windows.MessageBox]::Show(
-                'Aggressive preset disables many features. Are you sure?',
-                'MightyBoost', 'YesNo', 'Warning')
-            if ($r -eq 'Yes') { Invoke-MBApplyPreset 'aggressive' }
-        })
-    }
-    if ($ui.BtnRefreshUndo) {
-        $ui.BtnRefreshUndo.Add_Click({ Update-MBUndoList })
-    }
-    if ($ui.BtnUndoSelected) {
-        $ui.BtnUndoSelected.Add_Click({ Invoke-MBUndoSelected })
-    }
-    Update-MBUndoList
-}
-
-# ------------------------------------------------------------------
-# UI handlers
-# ------------------------------------------------------------------
-function Get-MBCheckedFromPanel {
-    param($Panel)
-    if (-not $Panel) { return @() }
-    $list = @()
-    foreach ($child in $Panel.Children) {
-        if ($child -is [System.Windows.Controls.CheckBox] -and $child.IsChecked) {
-            $list += [string]$child.Tag
-        }
-    }
-    return $list
-}
-
-function Invoke-MBApplySelectedTweaks {
-    $ids = @()
-    foreach ($cat in 'Privacy','Performance','Gaming','Network','UI') {
-        $ids += Get-MBCheckedFromPanel $global:MB.UI["Panel$cat"]
-    }
-    if ($ids.Count -eq 0) { return }
-    [void](New-MBRestorePoint)
-    foreach ($id in $ids) {
-        $t = $global:MB.Data.Tweaks | Where-Object { $_.id -eq $id } | Select-Object -First 1
-        if ($t) { Invoke-MBTweak -Tweak $t }
-    }
-    [System.Windows.MessageBox]::Show("Applied $($ids.Count) tweaks.", 'MightyBoost') | Out-Null
-    Update-MBUndoList
-}
-
-function Invoke-MBApplySelectedDebloat {
-    $ids = Get-MBCheckedFromPanel $global:MB.UI.PanelDebloat
-    if ($ids.Count -eq 0) { return }
-    foreach ($id in $ids) {
-        $d = $global:MB.Data.Debloat | Where-Object { $_.id -eq $id } | Select-Object -First 1
-        if ($d) { [void](Remove-MBAppx -Name $d.appx) }
-    }
-    [System.Windows.MessageBox]::Show("Debloated $($ids.Count) apps.", 'MightyBoost') | Out-Null
-}
-
-function Invoke-MBApplySelectedServices {
-    $ids = Get-MBCheckedFromPanel $global:MB.UI.PanelServices
-    if ($ids.Count -eq 0) { return }
-    foreach ($id in $ids) {
-        $s = $global:MB.Data.Services | Where-Object { $_.id -eq $id } | Select-Object -First 1
-        if ($s) {
-            Invoke-MBServiceAction -Action @{
-                name    = $s.service
-                startup = $s.startup
-                stop    = $true
+    while ($true) {
+        Show-MBMainMenu
+        $c = (Read-MBChoice 'Choice').Trim().ToUpper()
+        switch ($c) {
+            '1' { Invoke-MBPresetMenu }
+            '2' { Invoke-MBCategoryMenu -Category 'Privacy' }
+            '3' { Invoke-MBCategoryMenu -Category 'Performance' }
+            '4' { Invoke-MBCategoryMenu -Category 'Gaming' }
+            '5' { Invoke-MBCategoryMenu -Category 'Network' }
+            '6' { Invoke-MBCategoryMenu -Category 'UI' }
+            '7' { Invoke-MBDebloatMenu }
+            '8' { Invoke-MBServicesMenu }
+            '9' { Invoke-MBInstallMenu }
+            'C' { Invoke-MBCleanupMenu }
+            'R' { Invoke-MBRestoreMenu }
+            'P' {
+                $ok = New-MBRestorePoint -Force
+                Write-Host ''
+                if ($ok) { Write-Host '   Restore point created.' -ForegroundColor Green }
+                else     { Write-Host '   Failed. Check System Protection settings.' -ForegroundColor Red }
+                Pause-MB
+            }
+            'L' {
+                Write-Host ''
+                Write-Host ('   Log file : ' + $global:MB.LogFile)
+                Write-Host ('   Backups  : ' + $global:MB.BackupDir)
+                Write-Host ('   Applied  : ' + $global:MB.AppliedFile)
+                Pause-MB
+            }
+            'Q' { Write-MBLog 'User exit'; return }
+            ''  { }
+            default {
+                Write-Host '   Unknown choice.' -ForegroundColor DarkYellow
+                Start-Sleep -Milliseconds 600
             }
         }
     }
-    [System.Windows.MessageBox]::Show("Configured $($ids.Count) services.", 'MightyBoost') | Out-Null
-}
-
-function Invoke-MBInstallSelectedApps {
-    $ids = Get-MBCheckedFromPanel $global:MB.UI.PanelInstall
-    if ($ids.Count -eq 0) { return }
-    $okCount = 0
-    foreach ($id in $ids) { if (Install-MBPackage -Id $id) { $okCount++ } }
-    [System.Windows.MessageBox]::Show("Installed $okCount of $($ids.Count) packages.", 'MightyBoost') | Out-Null
-}
-
-function Invoke-MBRunCleanup {
-    $ids = Get-MBCheckedFromPanel $global:MB.UI.PanelCleanup
-    if ($ids.Count -eq 0) { return }
-    $totalBytes = 0
-    foreach ($id in $ids) {
-        $t = (Get-MBCleanupTargets) | Where-Object { $_.Id -eq $id } | Select-Object -First 1
-        if ($t) { $totalBytes += (Invoke-MBCleanupTarget -Target $t) }
-    }
-    [System.Windows.MessageBox]::Show(("Freed approximately {0:N1} MB." -f ($totalBytes/1MB)), 'MightyBoost') | Out-Null
-}
-
-function Invoke-MBApplyPreset {
-    param([string]$Preset)
-    [void](New-MBRestorePoint)
-    $tweaks = $global:MB.Data.Tweaks | Where-Object { $_.presets -contains $Preset }
-    foreach ($t in $tweaks) { Invoke-MBTweak -Tweak $t }
-    [System.Windows.MessageBox]::Show("Applied preset '$Preset' - $($tweaks.Count) tweaks.", 'MightyBoost') | Out-Null
-    Update-MBUndoList
-}
-
-function Update-MBUndoList {
-    $lb = $global:MB.UI.UndoList
-    if (-not $lb) { return }
-    $lb.Items.Clear()
-    foreach ($e in @(Read-MBApplied)) {
-        [void]$lb.Items.Add("$($e.appliedAt) | $($e.category) | $($e.id)")
-    }
-}
-
-function Invoke-MBUndoSelected {
-    $lb = $global:MB.UI.UndoList
-    if (-not $lb -or -not $lb.SelectedItem) { return }
-    $line = [string]$lb.SelectedItem
-    $id   = ($line -split '\|')[-1].Trim()
-    Undo-MBTweak -Id $id
-    Update-MBUndoList
 }
