@@ -123,7 +123,11 @@ function Get-MBSource {
     }
     if ($null -eq $text) {
         $url  = "https://raw.githubusercontent.com/$($global:MB.RepoOwner)/$($global:MB.RepoName)/$($global:MB.Branch)/$RelativePath"
-        $text = Invoke-RestMethod -Uri $url -ErrorAction Stop
+        # Use Invoke-WebRequest .Content (raw string) - Invoke-RestMethod auto-parses JSON/XML
+        # and would give us PSCustomObjects instead of source text.
+        $resp = Invoke-WebRequest -Uri $url -UseBasicParsing -ErrorAction Stop
+        $text = $resp.Content
+        if ($text -isnot [string]) { $text = [System.Text.Encoding]::UTF8.GetString($text) }
     }
     # Strip UTF-8 BOM character so [scriptblock]::Create can parse the first line.
     if ($text -and $text.Length -gt 0 -and [int][char]$text[0] -eq 0xFEFF) {
